@@ -189,20 +189,30 @@ void _applyImageiOS({
   }
 
   await Future.wait(
-    list.map(
-      (template) => Isolate.run(() async {
-        final newFile = copyResize(
-          image,
-          width: image.width * template.pixelDensity ~/ 4,
-          height: image.height * template.pixelDensity ~/ 4,
-          interpolation: Interpolation.average,
-        );
+    list.map((template) {
+      final width = image.width * template.pixelDensity ~/ 4;
+      final height = image.height * template.pixelDensity ~/ 4;
+      final targetImagePath = targetPath! + template.fileName;
+      return Process.run(
+        'convert',
+        '$imagePath -resize ${width}x$height^ -gravity center  $targetImagePath'
+            .split(' '),
+      );
+    }
+        // (template) => Isolate.run(() async {
+        //   final newFile = copyResize(
+        //     image,
+        //     width: image.width * template.pixelDensity ~/ 4,
+        //     height: image.height * template.pixelDensity ~/ 4,
+        //     interpolation: Interpolation.average,
+        //   );
 
-        final file = File(targetPath! + template.fileName);
-        await file.create(recursive: true);
-        await file.writeAsBytes(encodePng(newFile));
-      }),
-    ),
+        //   final file = File(targetPath! + template.fileName);
+        //   await file.create(recursive: true);
+        //   await file.writeAsBytes(encodePng(newFile));
+        // }),
+
+        ),
   );
 }
 

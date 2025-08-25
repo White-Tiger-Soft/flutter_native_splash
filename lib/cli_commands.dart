@@ -3,8 +3,6 @@
 /// This is the main entry point for the Flutter Native Splash package.
 library;
 
-import 'dart:isolate';
-
 import 'package:ansicolor/ansicolor.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:image/image.dart';

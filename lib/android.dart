@@ -237,7 +237,9 @@ void _applyImageAndroid({
 
     _saveImageAndroid(
       templates: templates,
-      image: image,
+      sourceImagePath: imagePath,
+      sourceImageWidth: image.width.toDouble(),
+      sourceImageHeight: image.height.toDouble(),
       fileName: fileName,
       androidResFolder: _flavorHelper.androidResFolder,
     );
@@ -260,33 +262,46 @@ List<_AndroidDrawableTemplate> _getAssociatedTemplates({
 /// https://github.com/fluttercommunity/flutter_launcher_icons/issues/101#issuecomment-495528733
 void _saveImageAndroid({
   required List<_AndroidDrawableTemplate> templates,
-  required Image image,
+  required String sourceImagePath,
+  required double sourceImageWidth,
+  required double sourceImageHeight,
   required fileName,
   required String androidResFolder,
 }) async {
   await Future.wait(
     templates.map(
-      (template) => Isolate.run(() async {
+        // (template) => Isolate.run(() async {
         //added file name attribute to make this method generic for splash image and branding image.
-        final newFile = copyResize(
-          image,
-          width: image.width * template.pixelDensity ~/ 4,
-          height: image.height * template.pixelDensity ~/ 4,
-          interpolation: Interpolation.average,
-        );
+        // final newFile = copyResize(
+        //   image,
+        //   width: image.width * template.pixelDensity ~/ 4,
+        //   height: image.height * template.pixelDensity ~/ 4,
+        //   interpolation: Interpolation.average,
+        // );
 
-        // When the flavor value is not specified we will place all the data inside the main directory.
-        // However if the flavor value is specified, we need to place the data in the correct directory.
-        // Default: android/app/src/main/res/
-        // With a flavor: android/app/src/[flavor name]/res/
-        final file = File(
-          '$androidResFolder${template.directoryName}/$fileName',
-        );
-        // File(_androidResFolder + template.directoryName + '/' + 'splash.png');
-        await file.create(recursive: true);
-        await file.writeAsBytes(encodePng(newFile));
-      }),
-    ),
+        // // When the flavor value is not specified we will place all the data inside the main directory.
+        // // However if the flavor value is specified, we need to place the data in the correct directory.
+        // // Default: android/app/src/main/res/
+        // // With a flavor: android/app/src/[flavor name]/res/
+        // final file = File(
+        //   '$androidResFolder${template.directoryName}/$fileName',
+        // );
+        // // File(_androidResFolder + template.directoryName + '/' + 'splash.png');
+        // await file.create(recursive: true);
+        // await file.writeAsBytes(encodePng(newFile));
+        // }),
+        (template) {
+      final width = sourceImageWidth * template.pixelDensity ~/ 4;
+      final height = sourceImageHeight * template.pixelDensity ~/ 4;
+      final targetImagePath =
+          '$androidResFolder${template.directoryName}/$fileName';
+      print('[Android] Magic creating ${template.directoryName}');
+      return Process.run(
+        'convert',
+        '$sourceImagePath -resize ${width}x$height^ -gravity center  $targetImagePath'
+            .split(' '),
+      );
+    }),
   );
 }
 
